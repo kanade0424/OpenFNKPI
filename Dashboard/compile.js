@@ -58,7 +58,6 @@ function compileFile(srcPath) {
         `--esModuleInterop ` +
         `--skipLibCheck ` +
         `--declaration false ` +
-        `--alwaysStrict false ` +
         `--noEmit false`,
         { stdio: 'pipe' }
       );

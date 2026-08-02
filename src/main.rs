@@ -9,4 +9,7 @@ const PUBLIC_PATH: &str = "/var/www/openfnkpi/";
 async fn main() {
     println!("Hello, world!");
     println!("Public Path:{}", PUBLIC_PATH);
+
+    let app = Router::new()
+        .nest_service("/",ServeDir::new(PUBLIC_PATH))
 }

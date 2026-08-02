@@ -12,7 +12,7 @@ async fn main() {
     let s = "/media/ubuntu/3088977088973378/ss/OpenFNKPI/Dashboard/src";
 
     let app = Router::new()
-        .fallback_service("/",ServeDir::new(s));
+        .fallback_service(ServeDir::new(s));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
         .await

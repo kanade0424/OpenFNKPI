@@ -5,8 +5,6 @@ const chokidar = require('chokidar');
 
 const SRC_DIR = path.resolve('./src-uncompile');
 const OUT_DIR = path.resolve('./src');
-
-
 function collectFiles(dir, files = []) {
   if (!fs.existsSync(dir)) return files;
 
@@ -21,7 +19,6 @@ function collectFiles(dir, files = []) {
   return files;
 }
 
-
 function getOutPath(srcPath) {
   const relative = path.relative(SRC_DIR, srcPath);
   const outRelative = relative
@@ -30,6 +27,12 @@ function getOutPath(srcPath) {
   return path.join(OUT_DIR, outRelative);
 }
 
+function removeExportEmpty(outPath) {
+  if (!fs.existsSync(outPath)) return;
+  let code = fs.readFileSync(outPath, 'utf8');
+  code = code.replace(/\s*export\s*\{\s*\}\s*;?\s*$/, '\n');
+  fs.writeFileSync(outPath, code, 'utf8');
+}
 
 function compileFile(srcPath) {
   const outPath = getOutPath(srcPath);
@@ -37,22 +40,24 @@ function compileFile(srcPath) {
 
   try {
     if (srcPath.endsWith('.ts')) {
-        execSync(
-            `npx tsc "${srcPath}" ` +
-            `--rootDir "${SRC_DIR}" ` +
-            `--outDir "${OUT_DIR}" ` +
-            `--target ESNext ` +
-            `--module ESNext ` +
-            `--moduleResolution Bundler ` +     // または NodeNext
-            `--moduleDetection force ` +        // ← 重要：すべてのファイルを module として扱う
-            `--esModuleInterop ` +
-            `--skipLibCheck ` +
-            `--declaration false ` +
-            `--alwaysStrict false ` +
-            `--noEmit false`,
-            { stdio: 'pipe' }
-        );
-        console.log(`✓ TS  ${path.relative(process.cwd(), srcPath)} → ${path.relative(process.cwd(), outPath)}`);
+      execSync(
+        `npx tsc "${srcPath}" ` +
+        `--rootDir "${SRC_DIR}" ` +
+        `--outDir "${OUT_DIR}" ` +
+        `--target ESNext ` +
+        `--module ESNext ` +
+        `--moduleResolution Bundler ` +
+        `--moduleDetection force ` +
+        `--esModuleInterop ` +
+        `--skipLibCheck ` +
+        `--declaration false ` +
+        `--alwaysStrict false ` +
+        `--noEmit false`,
+        { stdio: 'pipe' }
+      );
+
+      removeExportEmpty(outPath);
+      console.log(`✓ TS  ${path.relative(process.cwd(), srcPath)} → ${path.relative(process.cwd(), outPath)}`);
     } else if (srcPath.endsWith('.scss')) {
       execSync(
         `npx sass "${srcPath}" "${outPath}" --style=expanded --no-source-map`,
@@ -61,19 +66,25 @@ function compileFile(srcPath) {
       console.log(`✓ SCSS ${path.relative(process.cwd(), srcPath)} → ${path.relative(process.cwd(), outPath)}`);
     }
   } catch (err) {
-    console.error(`✗ 失敗: ${srcPath}`);
-    if (err.stderr) {
-      console.error(err.stderr.toString());
+    if (fs.existsSync(outPath)) {
+      if (srcPath.endsWith('.ts')) {
+        removeExportEmpty(outPath);
+      }
+      console.log(`✓ TS  ${path.relative(process.cwd(), srcPath)} → ${path.relative(process.cwd(), outPath)} (警告あり)`);
     } else {
-      console.error(err.message || err);
+      console.error(`✗ 失敗: ${srcPath}`);
+      if (err.stderr) {
+        console.error(err.stderr.toString());
+      } else {
+        console.error(err.message || err);
+      }
     }
   }
 }
-
 function compileAll() {
   const files = collectFiles(SRC_DIR);
   if (files.length === 0) {
-    console.log('コンパイル対象ファイルが見つかりませんでした。');
+    console.log('コンパイル対象のファイルが見つかりませんでした。');
     return;
   }
   console.log(`コンパイル開始 (${files.length} ファイル)...`);

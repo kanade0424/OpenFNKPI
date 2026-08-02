@@ -4,7 +4,7 @@ const ts = require('typescript');
 const sass = require('sass');
 const chokidar = require('chokidar');
 
-const SRC_DIR = path.resolve('./uncompile');
+const SRC_DIR = path.resolve('./src-uncompile');
 const OUT_DIR = path.resolve('./src');
 
 function collectFiles(dir, files = []) {

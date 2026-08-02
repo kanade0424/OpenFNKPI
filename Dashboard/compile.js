@@ -7,6 +7,7 @@ const chokidar = require('chokidar');
 const SRC_DIR = path.resolve('./src-uncompile');
 const OUT_DIR = path.resolve('./src');
 
+
 function collectFiles(dir, files = []) {
   if (!fs.existsSync(dir)) return files;
 
@@ -21,7 +22,6 @@ function collectFiles(dir, files = []) {
   return files;
 }
 
-
 function getOutPath(srcPath) {
   const relative = path.relative(SRC_DIR, srcPath);
   const outRelative = relative
@@ -29,6 +29,7 @@ function getOutPath(srcPath) {
     .replace(/\.scss$/, '.css');
   return path.join(OUT_DIR, outRelative);
 }
+
 
 function compileFile(srcPath) {
   const outPath = getOutPath(srcPath);
@@ -39,15 +40,15 @@ function compileFile(srcPath) {
       const source = fs.readFileSync(srcPath, 'utf8');
       const result = ts.transpileModule(source, {
         compilerOptions: {
-            target: "ESNext",
-            module: "ESNext",
-            moduleResolution: "NodeNext",
-            esModuleInterop: true,
-            strict: true,
-            skipLibCheck: true,
+          target: "ESNext",
+          module: "ESNext",
+          moduleResolution: "NodeNext",
+          esModuleInterop: true,
+          strict: true,
+          skipLibCheck: true,
         },
         fileName: srcPath,
-        });
+      });
       fs.writeFileSync(outPath, result.outputText, 'utf8');
       console.log(`✓ TS  ${path.relative(process.cwd(), srcPath)} → ${path.relative(process.cwd(), outPath)}`);
     } else if (srcPath.endsWith('.scss')) {
@@ -64,11 +65,10 @@ function compileFile(srcPath) {
   }
 }
 
-
 function compileAll() {
   const files = collectFiles(SRC_DIR);
   if (files.length === 0) {
-    console.log('コンパイル対象のファイル が見つかりませんでした。');
+    console.log('コンパイル対象のファイルが見つかりませんでした。');
     return;
   }
   console.log(`コンパイル開始 (${files.length} ファイル)...`);
@@ -76,10 +76,11 @@ function compileAll() {
   console.log('完了');
 }
 
+// メイン処理
 const isWatch = process.argv[2] === 'watch';
 
 if (isWatch) {
-  console.log('Watch (Ctrl+C で停止)');
+  console.log('Watch... (Ctrl+C で停止)');
   compileAll();
 
   const watcher = chokidar.watch(SRC_DIR, {

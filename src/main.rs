@@ -18,7 +18,6 @@ async fn main() {
         .expect("failed to bind");
 
     println!("listening on {}", listener.local_addr().unwrap());
-    println!("serving files from: {}", static_dir);
 
     axum::serve(listener, app)
         .await

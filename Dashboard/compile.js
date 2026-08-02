@@ -39,15 +39,15 @@ function compileFile(srcPath) {
       const source = fs.readFileSync(srcPath, 'utf8');
       const result = ts.transpileModule(source, {
         compilerOptions: {
-          target: ts.ScriptTarget.ESNext,
-          module: ts.ModuleKind.ESNext,
-          moduleResolution: ts.ModuleResolutionKind.NodeNext,
-          esModuleInterop: true,
-          strict: true,
-          skipLibCheck: true,
+            target: "ESNext",
+            module: "ESNext",
+            moduleResolution: "NodeNext",
+            esModuleInterop: true,
+            strict: true,
+            skipLibCheck: true,
         },
         fileName: srcPath,
-      });
+        });
       fs.writeFileSync(outPath, result.outputText, 'utf8');
       console.log(`✓ TS  ${path.relative(process.cwd(), srcPath)} → ${path.relative(process.cwd(), outPath)}`);
     } else if (srcPath.endsWith('.scss')) {

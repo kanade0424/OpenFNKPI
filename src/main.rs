@@ -2,8 +2,12 @@ use serde::{Deserialize,Serialize};
 use axum::{routing::get, Router};
 use tower_http::services::ServeDir;
 
+mod endpoints;
+
 // ファイルパスを定義
 const PUBLIC_PATH: &str = "/var/www/openfnkpi/";
+const DB_PATH: &str = "/var/opt/openfnkpi/data.db";
+const LOG_PATH: &str = "/var/log/openfnkpi/";
 
 #[tokio::main]
 async fn main() {

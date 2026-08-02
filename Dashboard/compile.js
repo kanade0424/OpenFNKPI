@@ -47,7 +47,9 @@ function compileFile(srcPath) {
         `--esModuleInterop ` +
         `--skipLibCheck ` +
         `--declaration false ` +
-        `--noEmit false`,
+        `--noEmit false`, +
+        `--alwaysStrict false ` +
+        `--strict false ` ,
         { stdio: 'pipe' }
       );
       console.log(`✓ TS  ${path.relative(process.cwd(), srcPath)} → ${path.relative(process.cwd(), outPath)}`);

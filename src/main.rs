@@ -9,9 +9,10 @@ const PUBLIC_PATH: &str = "/var/www/openfnkpi/";
 async fn main() {
     println!("Hello, world!");
     println!("Public Path:{}", PUBLIC_PATH);
+    let s = "/media/ubuntu/3088977088973378/ss/OpenFNKPI/Dashboard/src";
 
     let app = Router::new()
-        .nest_service("/",ServeDir::new(PUBLIC_PATH));
+        .fallback_service("/",ServeDir::new(s));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
         .await

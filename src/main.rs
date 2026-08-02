@@ -1,7 +1,7 @@
 use serde::{Deserialize,Serialize};
 
 // ファイルパスを定義
-const PUBLIC_PATH: &str = "/var/www/";
+const PUBLIC_PATH: &str = "/var/www/openfnkpi/";
 
 fn main() {
     println!("Hello, world!");

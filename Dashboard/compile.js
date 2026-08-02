@@ -6,6 +6,21 @@ const chokidar = require('chokidar');
 const SRC_DIR = path.resolve('./src-uncompile');
 const OUT_DIR = path.resolve('./src');
 
+const colors = {
+  cyan:    (text) => `\x1b[36m${text}\x1b[0m`,
+  magenta: (text) => `\x1b[35m${text}\x1b[0m`,
+  yellow:  (text) => `\x1b[33m${text}\x1b[0m`,
+  blue:    (text) => `\x1b[34m${text}\x1b[0m`,
+};
+
+function colorizePath(filePath) {
+  if (filePath.endsWith('.ts'))   return colors.cyan(filePath);
+  if (filePath.endsWith('.scss')) return colors.magenta(filePath);
+  if (filePath.endsWith('.js'))   return colors.yellow(filePath);
+  if (filePath.endsWith('.css'))  return colors.blue(filePath);
+  return filePath;
+}
+
 function collectFiles(dir, files = []) {
   if (!fs.existsSync(dir)) return files;
 
@@ -28,7 +43,6 @@ function getOutPath(srcPath) {
   return path.join(OUT_DIR, outRelative);
 }
 
-
 function removeExportEmpty(outPath) {
   if (!fs.existsSync(outPath)) return;
   let code = fs.readFileSync(outPath, 'utf8');
@@ -37,7 +51,7 @@ function removeExportEmpty(outPath) {
 }
 
 /**
- * @returns {{ messages: string }}
+ * @returns {{ messages: string, outPath: string }}
  */
 function compileFile(srcPath) {
   const outPath = getOutPath(srcPath);
@@ -78,7 +92,7 @@ function compileFile(srcPath) {
     }
   }
 
-  return { messages };
+  return { messages, outPath };
 }
 
 function compileAll() {
@@ -97,16 +111,18 @@ function compileAll() {
 
   console.log('コンパイル対象のファイル');
   for (const file of files) {
-    console.log(`- ${path.relative(process.cwd(), file)}`);
+    const rel = path.relative(process.cwd(), file);
+    console.log(`- ${colorizePath(rel)}`);
   }
   console.log('');
 
   console.log('コンパイル');
   for (const file of files) {
-    const relativePath = path.relative(process.cwd(), file);
-    const { messages } = compileFile(file);
+    const { messages, outPath } = compileFile(file);
+    const outRel = path.relative(process.cwd(), outPath);
 
-    console.log(`- ${relativePath}`);
+    console.log(`- ${colorizePath(outRel)}`);
+
     if (messages) {
       const indented = messages
         .split('\n')
@@ -132,9 +148,9 @@ if (isWatch) {
   watcher
     .on('add', (p) => {
       if (/\.(ts|scss)$/.test(p)) {
-        console.log(`\n[追加] ${path.relative(process.cwd(), p)}`);
-        const { messages } = compileFile(p);
-        console.log(`- ${path.relative(process.cwd(), p)}`);
+        console.log(`\n[追加] ${colorizePath(path.relative(process.cwd(), p))}`);
+        const { messages, outPath } = compileFile(p);
+        console.log(`- ${colorizePath(path.relative(process.cwd(), outPath))}`);
         if (messages) {
           console.log(messages.split('\n').map(l => `  ${l}`).join('\n'));
         }
@@ -142,9 +158,9 @@ if (isWatch) {
     })
     .on('change', (p) => {
       if (/\.(ts|scss)$/.test(p)) {
-        console.log(`\n[変更] ${path.relative(process.cwd(), p)}`);
-        const { messages } = compileFile(p);
-        console.log(`- ${path.relative(process.cwd(), p)}`);
+        console.log(`\n[変更] ${colorizePath(path.relative(process.cwd(), p))}`);
+        const { messages, outPath } = compileFile(p);
+        console.log(`- ${colorizePath(path.relative(process.cwd(), outPath))}`);
         if (messages) {
           console.log(messages.split('\n').map(l => `  ${l}`).join('\n'));
         }
@@ -154,7 +170,7 @@ if (isWatch) {
       const outPath = getOutPath(p);
       if (fs.existsSync(outPath)) {
         fs.unlinkSync(outPath);
-        console.log(`\n[削除] ${path.relative(process.cwd(), outPath)}`);
+        console.log(`\n[削除] ${colorizePath(path.relative(process.cwd(), outPath))}`);
       }
     });
 } else {

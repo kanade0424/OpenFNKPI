@@ -10,6 +10,5 @@
   "scripts": {
     "build": "node compile.js",
     "watch": "node compile.js watch"
-  },
-  "type":"module"
+  }
 }

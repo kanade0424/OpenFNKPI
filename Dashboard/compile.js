@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const ts = require('typescript');
-const sass = require('sass');
+const { execSync } = require('child_process');
 const chokidar = require('chokidar');
 
 const SRC_DIR = path.resolve('./src-uncompile');
@@ -22,6 +21,7 @@ function collectFiles(dir, files = []) {
   return files;
 }
 
+
 function getOutPath(srcPath) {
   const relative = path.relative(SRC_DIR, srcPath);
   const outRelative = relative
@@ -37,38 +37,41 @@ function compileFile(srcPath) {
 
   try {
     if (srcPath.endsWith('.ts')) {
-      const source = fs.readFileSync(srcPath, 'utf8');
-      const result = ts.transpileModule(source, {
-        compilerOptions: {
-          target: "ESNext",
-          module: "ESNext",
-          moduleResolution: "NodeNext",
-          esModuleInterop: true,
-          strict: true,
-          skipLibCheck: true,
-        },
-        fileName: srcPath,
-      });
-      fs.writeFileSync(outPath, result.outputText, 'utf8');
+      execSync(
+        `npx tsc "${srcPath}" ` +
+        `--rootDir "${SRC_DIR}" ` +
+        `--outDir "${OUT_DIR}" ` +
+        `--target ESNext ` +
+        `--module ESNext ` +
+        `--moduleResolution NodeNext ` +
+        `--esModuleInterop ` +
+        `--skipLibCheck ` +
+        `--declaration false ` +
+        `--noEmit false`,
+        { stdio: 'pipe' }
+      );
       console.log(`✓ TS  ${path.relative(process.cwd(), srcPath)} → ${path.relative(process.cwd(), outPath)}`);
     } else if (srcPath.endsWith('.scss')) {
-      const result = sass.compile(srcPath, {
-        style: 'expanded',
-        sourceMap: false,
-      });
-      fs.writeFileSync(outPath, result.css, 'utf8');
+      execSync(
+        `npx sass "${srcPath}" "${outPath}" --style=expanded --no-source-map`,
+        { stdio: 'pipe' }
+      );
       console.log(`✓ SCSS ${path.relative(process.cwd(), srcPath)} → ${path.relative(process.cwd(), outPath)}`);
     }
   } catch (err) {
     console.error(`✗ 失敗: ${srcPath}`);
-    console.error(err.message || err);
+    if (err.stderr) {
+      console.error(err.stderr.toString());
+    } else {
+      console.error(err.message || err);
+    }
   }
 }
 
 function compileAll() {
   const files = collectFiles(SRC_DIR);
   if (files.length === 0) {
-    console.log('コンパイル対象のファイルが見つかりませんでした。');
+    console.log('コンパイル対象ファイルが見つかりませんでした。');
     return;
   }
   console.log(`コンパイル開始 (${files.length} ファイル)...`);
@@ -76,7 +79,6 @@ function compileAll() {
   console.log('完了');
 }
 
-// メイン処理
 const isWatch = process.argv[2] === 'watch';
 
 if (isWatch) {

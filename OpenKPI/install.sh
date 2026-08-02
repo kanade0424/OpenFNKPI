@@ -5,3 +5,12 @@ lang=$(whiptail --title "Language Selection" --radiolist \
 "ja" "日本語" ON \
 "en" "English" OFF \
 3>&1 1>&2 2>&3)
+
+OS="$(uname -s)"
+ARCH="$(uname -m)"
+
+if [ "$lang" = "ja" ]; then
+    echo "OpenFNKPIのインストールを開始します。"
+elif [ "$lang" = "en" ]; then
+    echo "Starting OpenFNKPI installation."
+fi

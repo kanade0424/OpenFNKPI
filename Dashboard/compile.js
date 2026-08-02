@@ -36,10 +36,14 @@ function removeExportEmpty(outPath) {
   fs.writeFileSync(outPath, code, 'utf8');
 }
 
-
+/**
+ * @returns {{ messages: string }}
+ */
 function compileFile(srcPath) {
   const outPath = getOutPath(srcPath);
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
+
+  let messages = '';
 
   try {
     if (srcPath.endsWith('.ts')) {
@@ -58,55 +62,66 @@ function compileFile(srcPath) {
         `--noEmit false`,
         { stdio: 'pipe' }
       );
-
       removeExportEmpty(outPath);
-      console.log(`✓ TS  ${path.relative(process.cwd(), srcPath)} → ${path.relative(process.cwd(), outPath)}`);
     } else if (srcPath.endsWith('.scss')) {
       execSync(
         `npx sass "${srcPath}" "${outPath}" --style=expanded --no-source-map`,
         { stdio: 'pipe' }
       );
-      console.log(`✓ SCSS ${path.relative(process.cwd(), srcPath)} → ${path.relative(process.cwd(), outPath)}`);
     }
   } catch (err) {
     const stderr = err.stderr ? err.stderr.toString() : '';
     const stdout = err.stdout ? err.stdout.toString() : '';
-    const output = stderr + stdout;
+    messages = (stderr + stdout).trim();
 
-    const hasCompileError = /error TS\d+/.test(output);
-
-    if (hasCompileError) {
-      console.error(`✗ 失敗: ${srcPath}`);
-      console.error(output.trim());
-    } else {
-      if (fs.existsSync(outPath)) {
-        if (srcPath.endsWith('.ts')) {
-          removeExportEmpty(outPath);
-        }
-        console.log(`✓ TS  ${path.relative(process.cwd(), srcPath)} → ${path.relative(process.cwd(), outPath)} (警告あり)`);
-      } else {
-        console.error(`✗ 失敗: ${srcPath}`);
-        console.error(output.trim() || err.message);
-      }
+    if (srcPath.endsWith('.ts') && fs.existsSync(outPath)) {
+      removeExportEmpty(outPath);
     }
   }
+
+  return { messages };
 }
 
 function compileAll() {
-  const files = collectFiles(SRC_DIR);
+  let files = collectFiles(SRC_DIR);
+
+  files.sort((a, b) => {
+    const aIsTs = a.endsWith('.ts') ? 0 : 1;
+    const bIsTs = b.endsWith('.ts') ? 0 : 1;
+    return aIsTs - bIsTs || a.localeCompare(b);
+  });
+
   if (files.length === 0) {
-    console.log('コンパイル対象のファイルが見つかりませんでした。');
+    console.log('コンパイル対象のファイルはありません。');
     return;
   }
-  console.log(`コンパイル開始 (${files.length} ファイル)...`);
-  files.forEach(compileFile);
-  console.log('完了');
+
+  console.log('コンパイル対象のファイル');
+  for (const file of files) {
+    console.log(`- ${path.relative(process.cwd(), file)}`);
+  }
+  console.log('');
+
+  console.log('コンパイル');
+  for (const file of files) {
+    const relativePath = path.relative(process.cwd(), file);
+    const { messages } = compileFile(file);
+
+    console.log(`- ${relativePath}`);
+    if (messages) {
+      const indented = messages
+        .split('\n')
+        .map(line => `  ${line}`)
+        .join('\n');
+      console.log(indented);
+    }
+  }
 }
 
 const isWatch = process.argv[2] === 'watch';
 
 if (isWatch) {
-  console.log('Watch... (Ctrl+C で停止)');
+  console.log('Watch... (Ctrl+C で停止)\n');
   compileAll();
 
   const watcher = chokidar.watch(SRC_DIR, {
@@ -116,13 +131,31 @@ if (isWatch) {
   });
 
   watcher
-    .on('add',    (p) => { if (/\.(ts|scss)$/.test(p)) compileFile(p); })
-    .on('change', (p) => { if (/\.(ts|scss)$/.test(p)) compileFile(p); })
+    .on('add', (p) => {
+      if (/\.(ts|scss)$/.test(p)) {
+        console.log(`\n[追加] ${path.relative(process.cwd(), p)}`);
+        const { messages } = compileFile(p);
+        console.log(`- ${path.relative(process.cwd(), p)}`);
+        if (messages) {
+          console.log(messages.split('\n').map(l => `  ${l}`).join('\n'));
+        }
+      }
+    })
+    .on('change', (p) => {
+      if (/\.(ts|scss)$/.test(p)) {
+        console.log(`\n[変更] ${path.relative(process.cwd(), p)}`);
+        const { messages } = compileFile(p);
+        console.log(`- ${path.relative(process.cwd(), p)}`);
+        if (messages) {
+          console.log(messages.split('\n').map(l => `  ${l}`).join('\n'));
+        }
+      }
+    })
     .on('unlink', (p) => {
       const outPath = getOutPath(p);
       if (fs.existsSync(outPath)) {
         fs.unlinkSync(outPath);
-        console.log(`削除: ${path.relative(process.cwd(), outPath)}`);
+        console.log(`\n[削除] ${path.relative(process.cwd(), outPath)}`);
       }
     });
 } else {

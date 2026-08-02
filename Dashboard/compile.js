@@ -5,6 +5,7 @@ const chokidar = require('chokidar');
 
 const SRC_DIR = path.resolve('./src-uncompile');
 const OUT_DIR = path.resolve('./src');
+
 function collectFiles(dir, files = []) {
   if (!fs.existsSync(dir)) return files;
 
@@ -27,12 +28,14 @@ function getOutPath(srcPath) {
   return path.join(OUT_DIR, outRelative);
 }
 
+
 function removeExportEmpty(outPath) {
   if (!fs.existsSync(outPath)) return;
   let code = fs.readFileSync(outPath, 'utf8');
   code = code.replace(/\s*export\s*\{\s*\}\s*;?\s*$/, '\n');
   fs.writeFileSync(outPath, code, 'utf8');
 }
+
 
 function compileFile(srcPath) {
   const outPath = getOutPath(srcPath);
@@ -66,21 +69,29 @@ function compileFile(srcPath) {
       console.log(`✓ SCSS ${path.relative(process.cwd(), srcPath)} → ${path.relative(process.cwd(), outPath)}`);
     }
   } catch (err) {
-    if (fs.existsSync(outPath)) {
-      if (srcPath.endsWith('.ts')) {
-        removeExportEmpty(outPath);
-      }
-      console.log(`✓ TS  ${path.relative(process.cwd(), srcPath)} → ${path.relative(process.cwd(), outPath)} (警告あり)`);
-    } else {
+    const stderr = err.stderr ? err.stderr.toString() : '';
+    const stdout = err.stdout ? err.stdout.toString() : '';
+    const output = stderr + stdout;
+
+    const hasCompileError = /error TS\d+/.test(output);
+
+    if (hasCompileError) {
       console.error(`✗ 失敗: ${srcPath}`);
-      if (err.stderr) {
-        console.error(err.stderr.toString());
+      console.error(output.trim());
+    } else {
+      if (fs.existsSync(outPath)) {
+        if (srcPath.endsWith('.ts')) {
+          removeExportEmpty(outPath);
+        }
+        console.log(`✓ TS  ${path.relative(process.cwd(), srcPath)} → ${path.relative(process.cwd(), outPath)} (警告あり)`);
       } else {
-        console.error(err.message || err);
+        console.error(`✗ 失敗: ${srcPath}`);
+        console.error(output.trim() || err.message);
       }
     }
   }
 }
+
 function compileAll() {
   const files = collectFiles(SRC_DIR);
   if (files.length === 0) {

@@ -1,5 +1,6 @@
 use serde::{Deserialize,Serialize};
 use axum::{routing::get, Router};
+use tower_http::services::ServeDir;
 
 // ファイルパスを定義
 const PUBLIC_PATH: &str = "/var/www/openfnkpi/";

@@ -37,22 +37,22 @@ function compileFile(srcPath) {
 
   try {
     if (srcPath.endsWith('.ts')) {
-      execSync(
-        `npx tsc "${srcPath}" ` +
-        `--rootDir "${SRC_DIR}" ` +
-        `--outDir "${OUT_DIR}" ` +
-        `--target ESNext ` +
-        `--module ESNext ` +
-        `--moduleResolution NodeNext ` +
-        `--esModuleInterop ` +
-        `--skipLibCheck ` +
-        `--declaration false ` +
-        `--noEmit false`, +
-        `--alwaysStrict false ` +
-        `--strict false ` ,
-        { stdio: 'pipe' }
-      );
-      console.log(`✓ TS  ${path.relative(process.cwd(), srcPath)} → ${path.relative(process.cwd(), outPath)}`);
+        execSync(
+            `npx tsc "${srcPath}" ` +
+            `--rootDir "${SRC_DIR}" ` +
+            `--outDir "${OUT_DIR}" ` +
+            `--target ESNext ` +
+            `--module ESNext ` +
+            `--moduleResolution Bundler ` +     // または NodeNext
+            `--moduleDetection force ` +        // ← 重要：すべてのファイルを module として扱う
+            `--esModuleInterop ` +
+            `--skipLibCheck ` +
+            `--declaration false ` +
+            `--alwaysStrict false ` +
+            `--noEmit false`,
+            { stdio: 'pipe' }
+        );
+        console.log(`✓ TS  ${path.relative(process.cwd(), srcPath)} → ${path.relative(process.cwd(), outPath)}`);
     } else if (srcPath.endsWith('.scss')) {
       execSync(
         `npx sass "${srcPath}" "${outPath}" --style=expanded --no-source-map`,

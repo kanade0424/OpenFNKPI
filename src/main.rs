@@ -12,4 +12,15 @@ async fn main() {
 
     let app = Router::new()
         .nest_service("/",ServeDir::new(PUBLIC_PATH))
+
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
+        .await
+        .expect("failed to bind");
+
+    println!("listening on {}", listener.local_addr().unwrap());
+    println!("serving files from: {}", static_dir);
+
+    axum::serve(listener, app)
+        .await
+        .expect("server error");
 }

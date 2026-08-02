@@ -11,7 +11,7 @@ async fn main() {
     println!("Public Path:{}", PUBLIC_PATH);
 
     let app = Router::new()
-        .nest_service("/",ServeDir::new(PUBLIC_PATH))
+        .nest_service("/",ServeDir::new(PUBLIC_PATH));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
         .await

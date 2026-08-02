@@ -5,7 +5,7 @@ use axum::{routing::get, Router};
 const PUBLIC_PATH: &str = "/var/www/openfnkpi/";
 
 #[tokio::main]
-fn main() {
+async fn main() {
     println!("Hello, world!");
     println!("Public Path:{}", PUBLIC_PATH);
 }

@@ -15,8 +15,8 @@ interface LoginFormElements {
     formErrorText: HTMLSpanElement;
     errorUserId: HTMLSpanElement;
     errorPassword: HTMLSpanElement;
-    eyeOpen: SVGSVGElement;
-    eyeClosed: SVGSVGElement;
+    eyeOpen: Element;
+    eyeClosed: Element;
 }
 
 
@@ -82,8 +82,8 @@ function initPasswordToggle(elements: Pick<LoginFormElements, 'togglePassword' |
     elements.togglePassword.addEventListener('click', () => {
         const isPassword = elements.password.type === 'password';
         elements.password.type = isPassword ? 'text' : 'password';
-        elements.eyeOpen.style.display = isPassword ? 'none' : 'inline';
-        elements.eyeClosed.style.display = isPassword ? 'inline' : 'none';
+        (elements.eyeOpen as HTMLElement).style.display = isPassword ? 'none' : 'inline';
+        (elements.eyeClosed as HTMLElement).style.display = isPassword ? 'inline' : 'none';
         elements.togglePassword.setAttribute('aria-label', isPassword ? 'パスワードを非表示' : 'パスワードを表示');
     });
 }
@@ -164,39 +164,28 @@ function animateCard(card: HTMLElement): void {
 }
 
 function init(): void {
+    const btnLogin = getElement<HTMLButtonElement>('btnLogin');
+    const togglePassword = getElement<HTMLButtonElement>('togglePassword');
+
     const elements: LoginFormElements = {
         form: getElement<HTMLFormElement>('loginForm'),
         userId: getElement<HTMLInputElement>('userId'),
         password: getElement<HTMLInputElement>('password'),
-        togglePassword: getElement<HTMLButtonElement>('togglePassword'),
-        btnLogin: getElement<HTMLButtonElement>('btnLogin'),
-        btnText: getElement<HTMLSpanElement>('btnLogin'),
-        btnSpinner: getElement<HTMLSpanElement>('btnLogin'),
+        togglePassword,
+        btnLogin,
+        btnText: btnLogin.querySelector<HTMLSpanElement>('.btn-text')!,
+        btnSpinner: btnLogin.querySelector<HTMLSpanElement>('.btn-spinner')!,
         formError: getElement<HTMLDivElement>('formError'),
         formErrorText: getElement<HTMLSpanElement>('formErrorText'),
         errorUserId: getElement<HTMLSpanElement>('error-userId'),
         errorPassword: getElement<HTMLSpanElement>('error-password'),
-        eyeOpen: getElement<SVGSVGElement>('togglePassword'),
-        eyeClosed: getElement<SVGSVGElement>('togglePassword'),
+        eyeOpen: togglePassword.querySelector('.eye-open')!,
+        eyeClosed: togglePassword.querySelector('.eye-closed')!,
     };
 
-    const btnLogin = getElement<HTMLButtonElement>('btnLogin');
-    const btnText = btnLogin.querySelector<HTMLSpanElement>('.btn-text')!;
-    const btnSpinner = btnLogin.querySelector<HTMLSpanElement>('.btn-spinner')!;
-    const eyeOpen = getElement<HTMLButtonElement>('togglePassword').querySelector<SVGSVGElement>('.eye-open')!;
-    const eyeClosed = getElement<HTMLButtonElement>('togglePassword').querySelector<SVGSVGElement>('.eye-closed')!;
-
-    const resolvedElements: LoginFormElements = {
-        ...elements,
-        btnText,
-        btnSpinner,
-        eyeOpen,
-        eyeClosed,
-    };
-
-    initPasswordToggle(resolvedElements);
-    initRealtimeValidation(resolvedElements);
-    initFormSubmit(resolvedElements);
+    initPasswordToggle(elements);
+    initRealtimeValidation(elements);
+    initFormSubmit(elements);
 
     const card = getElement<HTMLElement>('loginCard');
     animateCard(card);

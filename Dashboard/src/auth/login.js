@@ -122,36 +122,26 @@ function animateCard(card) {
     });
 }
 function init() {
+    const btnLogin = getElement('btnLogin');
+    const togglePassword = getElement('togglePassword');
     const elements = {
         form: getElement('loginForm'),
         userId: getElement('userId'),
         password: getElement('password'),
-        togglePassword: getElement('togglePassword'),
-        btnLogin: getElement('btnLogin'),
-        btnText: getElement('btnLogin'),
-        btnSpinner: getElement('btnLogin'),
+        togglePassword,
+        btnLogin,
+        btnText: btnLogin.querySelector('.btn-text'),
+        btnSpinner: btnLogin.querySelector('.btn-spinner'),
         formError: getElement('formError'),
         formErrorText: getElement('formErrorText'),
         errorUserId: getElement('error-userId'),
         errorPassword: getElement('error-password'),
-        eyeOpen: getElement('togglePassword'),
-        eyeClosed: getElement('togglePassword'),
+        eyeOpen: togglePassword.querySelector('.eye-open'),
+        eyeClosed: togglePassword.querySelector('.eye-closed'),
     };
-    const btnLogin = getElement('btnLogin');
-    const btnText = btnLogin.querySelector('.btn-text');
-    const btnSpinner = btnLogin.querySelector('.btn-spinner');
-    const eyeOpen = getElement('togglePassword').querySelector('.eye-open');
-    const eyeClosed = getElement('togglePassword').querySelector('.eye-closed');
-    const resolvedElements = {
-        ...elements,
-        btnText,
-        btnSpinner,
-        eyeOpen,
-        eyeClosed,
-    };
-    initPasswordToggle(resolvedElements);
-    initRealtimeValidation(resolvedElements);
-    initFormSubmit(resolvedElements);
+    initPasswordToggle(elements);
+    initRealtimeValidation(elements);
+    initFormSubmit(elements);
     const card = getElement('loginCard');
     animateCard(card);
 }

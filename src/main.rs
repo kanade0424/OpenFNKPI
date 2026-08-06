@@ -7,7 +7,7 @@ use axum::{
     http::StatusCode,
 };
 use tower_http::services::ServeDir;
-
+use loogs::*;
 mod endpoints;
 
 // ファイルパスを定義
@@ -28,7 +28,7 @@ async fn main() {
         .await
         .expect("failed to bind");
 
-    println!("listening on {}", listener.local_addr().unwrap());
+    info!("listening on {}", listener.local_addr().unwrap());
 
     axum::serve(listener, app)
         .await

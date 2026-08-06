@@ -21,7 +21,11 @@ async fn main() {
     info!("Public Path:{}", PUBLIC_PATH);
     let s = "./Dashboard/src/";
 
+    let api = Router::new()
+    
+
     let app = Router::new()
+        .nest("/api", api)
         .fallback_service(ServeDir::new(s));//現在はテストのため、直接プロジェクトのパスを使用していますが、実際にはPUBLIC_PATHを使うので置き換えてください。
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")

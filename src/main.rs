@@ -21,8 +21,11 @@ async fn main() {
     info!("Public Path:{}", PUBLIC_PATH);
     let s = "./Dashboard/src/";
 
+    let admin = Router::new()
+
+
     let api = Router::new()
-    
+        .nest("/admin",admin);
 
     let app = Router::new()
         .nest("/api", api)

@@ -17,8 +17,8 @@ const LOG_PATH: &str = "/var/log/openfnkpi/";
 
 #[tokio::main]
 async fn main() {
-    println!("Hello, world!");
-    println!("Public Path:{}", PUBLIC_PATH);
+    info!("Hello, world!");
+    info!("Public Path:{}", PUBLIC_PATH);
     let s = "./Dashboard/src/";
 
     let app = Router::new()
